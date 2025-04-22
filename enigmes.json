@@ -1,4 +1,4 @@
-[
+const data = [
 {"riddle": 1, "team":"Les Ktroeufs en chocolat", "points": 15, "time": ""},
 {"riddle": 1, "team":"ChronOeuflectrons", "points": 12, "time": ""},
 {"riddle": 1, "team":"LaMauricienne", "points": 10, "time": ""},
