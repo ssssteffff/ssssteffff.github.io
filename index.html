@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bar Chart Race Animation</title>
+    <title>Pâques ou pas cap - progressiomètre</title>
     <!-- Add D3.js library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="text/javascript" src="./enigmes.json"></script>
@@ -126,7 +126,7 @@
 <body>
     <h1>Pâques ou pas cap ?</h1>
     <div id="chart-container" class="chart-race-container">
-        <div class="chart-title">Évolution du classement</div>
+        <div class="chart-title">Progressiomètre</div>
         <div class="riddle-display"></div>
         <div class="controls">
             <button id="play-pause">Pause</button>
@@ -150,8 +150,7 @@
         const entities = [...new Set(data.map(d => d.team))];
         
         // Chart settings
-        const margin = { top: 50, right: 50, bottom: 30, left: 120 };
-        const width = 960 - margin.left - margin.right;
+        let margin = { top: 10, right: 20, bottom: 30, left: 50 };
         const height = 1000 - margin.top - margin.bottom;
         const barHeight = 40;
         const barPadding = 10;
@@ -163,17 +162,12 @@
         const maxValue = Math.max(...data.map(d => d.score)) * 1.1;
         
         // Create SVG
-        const svg = d3.select("#bar-chart")
+        const rootSvg = d3.select("#bar-chart")
             .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("height", height + margin.top + margin.bottom);
+        const svg = rootSvg
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
-        
-        // Create scales
-        const xScale = d3.scaleLinear()
-            .domain([0, maxValue])
-            .range([0, width]);
         
         // Initialize animation variables
         let riddleIndex = 0;
@@ -181,6 +175,16 @@
         let isPlaying = true;
         
         function updateChart(duration) {
+            currentWidth = parseInt(d3.select('#bar-chart').style('width'), 10);
+            margin = {
+                top: 10,
+                left: currentWidth * 5 / 100,
+                bottom: 30,
+                right: currentWidth * 5 / 100
+            }
+            rootSvg.attr("width", currentWidth);
+            svg.attr("transform", `translate(${margin.left},${margin.top})`);
+
             const currentRiddle = riddles[riddleIndex];
             d3.select('.riddle-display').text(currentRiddle);
             
@@ -193,7 +197,7 @@
 
             const xScale = d3.scaleLinear()
             .domain([0, currentMaxValue])
-            .range([0, width]);
+            .range([0, currentWidth]);
             // Update y scale domain based on data
             const yScale = d3.scaleBand()
                 .domain(currentData.map(d => d.team))
@@ -328,6 +332,10 @@
         
         // Start the animation
         updateChart(defaultDuration);
+
+        // Add an event listener that run the function when dimension change
+        window.addEventListener('resize', function() { isPlaying= false; clearTimeout(); updateChart(defaultDuration); isPlaying = true; } );
+
     </script>
 </body>
 </html>
