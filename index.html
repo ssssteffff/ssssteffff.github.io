@@ -143,6 +143,16 @@
     <script>
         // Colors for each team
         const colors = {
+            "ChocoCheese": "#FFEB00",
+            "Œufs Di Pâques": "MediumSeaGreen",
+            "COCACOLAPINS": "red",
+            "Les Ktroeufs en chocolat": "SaddleBrown",
+            "Les Sthugs": "Coral",
+            "RIPster Eggs": "MediumSpringGreen",
+            "Oeufckel&Joeufckel": "Gold",
+            "SymPâquesthy for the Deviled Eggs": "FireBrick",
+            "T'HIBOUffeurs de CHOUcolat": "SteelBlue"
+
         };
         
         // Get unique riddles and entities
@@ -156,7 +166,7 @@
         const barPadding = 10;
         const defaultDuration = 1500;
         const slideDuration = 0;
-        const delay = 2000;
+        const delay = 3000;
         
         // Get max score for scaling
         const maxValue = Math.max(...data.map(d => d.score)) * 1.1;
@@ -192,7 +202,9 @@
             const currentData = data
                 .filter(d => d.riddle === currentRiddle)
                 .sort((a, b) => b.score - a.score);
-            
+
+            var prevScore = d3.local();
+
             const currentMaxValue = Math.max(...currentData.map(d => d.score)) * 1.1;
 
             const xScale = d3.scaleLinear()
@@ -206,6 +218,9 @@
             
             // JOIN data with elements
             const bars = svg.selectAll(".bar")
+                .each(function (d) {
+                    prevScore.set(this, d.score)
+                })
                 .data(currentData, d => d.team);
             
             // EXIT old elements
@@ -229,8 +244,17 @@
                 .transition()
                 .duration(duration)
                 .attr("x", d => xScale(d.score) - 10)
-                .text(d => d.score);
-            
+                .textTween(
+                    function(d) {
+                        var pScore = prevScore.get(this);
+                        if (pScore === undefined) {
+                            pScore = 0;
+                        }
+                        const i = d3.interpolateRound(pScore, d.score);
+                        return function(t) { return i(t)};
+                    }
+                );           
+ 
             // ENTER new elements
             const barsEnter = bars.enter()
                 .append("g")
@@ -274,7 +298,17 @@
             barsEnter.select(".bar-score")
                 .transition()
                 .duration(duration)
-                .attr("x", d => xScale(d.score) - 10);
+                .attr("x", d => xScale(d.score) - 10)
+                .textTween(
+                    function(d) {
+                        var pScore = prevScore.get(this);
+                        if (pScore === undefined) {
+                            pScore = 0;
+                        }
+                        const i = d3.interpolateRound(pScore, d.score);
+                        return function(t) { return i(t)};
+                    }
+                );
             
             // Schedule next update
             if (isPlaying) {
