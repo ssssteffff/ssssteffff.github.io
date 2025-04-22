@@ -86,6 +86,41 @@
         button:hover {
             background-color: #45a049;
         }
+
+         .slider-container {
+             width: 80%;
+             margin: 0 auto 20px auto;
+             display: flex;
+             align-items: center;
+         }
+
+         .slider {
+             -webkit-appearance: none;
+             width: 100%;
+             height: 10px;
+             border-radius: 5px;
+             background: #d3d3d3;
+             outline: none;
+             margin: 0 10px;
+         }
+
+         .slider::-webkit-slider-thumb {
+             -webkit-appearance: none;
+             appearance: none;
+             width: 20px;
+             height: 20px;
+             border-radius: 50%;
+             background: #4CAF50;
+             cursor: pointer;
+         }
+
+         .slider::-moz-range-thumb {
+             width: 20px;
+             height: 20px;
+             border-radius: 50%;
+             background: #4CAF50;
+             cursor: pointer;
+         }
     </style>
 </head>
 <body>
@@ -93,45 +128,21 @@
     <div id="chart-container" class="chart-race-container">
         <div class="chart-title">Évolution du classement</div>
         <div class="riddle-display"></div>
-        <div id="bar-chart"></div>
         <div class="controls">
             <button id="play-pause">Pause</button>
             <button id="reset">Reset</button>
         </div>
+        <div class="slider-container">
+            <span id="slider-value">1</span>
+            <input type="range" min="0" max="4" value="0" class="slider" id="riddle-slider">
+            <span id="slider-max">25</span>
+        </div>
+        <div id="bar-chart"></div>
     </div>
 
     <script>
-        // Sample data for the chart race
-/*        let response = await fetch('./enigmes.json')
-                        .then(function(response) {
-                            return response.json();
-                        });
-
-        const data = await response.json();
-*/
-/*        const data = [
-{"riddle": 1, "team":"Les Ktroeufs en chocolat", "score": 15, "time": ""},
-{"riddle": 1, "team":"ChronOeuflectrons", "score": 12, "time": ""},
-{"riddle": 1, "team":"LaMauricienne", "score": 10, "time": ""},
-{"riddle": 1, "team":"La Pâques Patrouille", "score": 8, "time": ""},
-{"riddle": 1, "team":"Groot", "score": 7, "time": ""},
-{"riddle": 1, "team":"T'HIBOUffeurs de CHOUcolat", "score": 6, "time": ""},
-{"riddle": 1, "team":"Œufs Di Pâques", "score": 5, "time": ""},
-{"riddle": 1, "team":"Retardatueurs", "score": 4, "time": ""},
-{"riddle": 2, "team":"Mana Wyrd", "score": 16, "time": ""},
-{"riddle": 2, "team":"RIPster Eggs", "score": 14, "time": ""},
-{"riddle": 2, "team":"ChronOeuflectrons", "score": 22, "time": ""},
-{"riddle": 2, "team":"T'HIBOUffeurs de CHOUcolat", "score": 14, "time": ""},
-{"riddle": 2, "team":"Retardatueurs", "score": 11, "time": ""},
-{"riddle": 2, "team":"Oeufckel&Joeufckel", "score": 7, "time": ""}
-    ]*/
-        // Colors for each company
+        // Colors for each team
         const colors = {
-            'Apple': '#FF6384',
-            'Google': '#36A2EB',
-            'Microsoft': '#FFCE56',
-            'Amazon': '#4BC0C0',
-            'Facebook': '#9966FF'
         };
         
         // Get unique riddles and entities
@@ -144,7 +155,8 @@
         const height = 1000 - margin.top - margin.bottom;
         const barHeight = 40;
         const barPadding = 10;
-        const duration = 1500;
+        const defaultDuration = 1500;
+        const slideDuration = 200;
         const delay = 2000;
         
         // Get max score for scaling
@@ -168,7 +180,7 @@
         let timer;
         let isPlaying = true;
         
-        function updateChart() {
+        function updateChart(duration) {
             const currentRiddle = riddles[riddleIndex];
             d3.select('.riddle-display').text(currentRiddle);
             
@@ -264,11 +276,16 @@
             if (isPlaying) {
                 timer = setTimeout(() => {
                     riddleIndex = (riddleIndex + 1) % riddles.length;
+                    // Update slider position to match current riddleIndex
+                    d3.select("#riddle-slider").property("value", riddleIndex);
+                    d3.select("#slider-value").text(riddles[riddleIndex]);
                     if (riddleIndex === 0) {
                         // Longer pause at the end of a cycle
-                        setTimeout(updateChart, delay * 2);
+                        setTimeout(function() {
+                            updateChart(defaultDuration)
+                        }, delay * 2);
                     } else {
-                        updateChart();
+                        updateChart(defaultDuration);
                     }
                 }, delay);
             }
@@ -280,7 +297,7 @@
             d3.select(this).text(isPlaying ? "Pause" : "Play");
             
             if (isPlaying) {
-                updateChart();
+                updateChart(defaultDuration);
             } else {
                 clearTimeout(timer);
             }
@@ -289,12 +306,28 @@
         // Reset button
         d3.select("#reset").on("click", function() {
             riddleIndex = 0;
+            d3.select("#riddle-slider").property("value", riddleIndex);
             clearTimeout(timer);
-            updateChart();
+            updateChart(defaultDuration);
         });
         
+        // Riddle slider
+        d3.select("#riddle-slider")
+            .property("max", riddles.length - 1)
+            .on("input", function() {
+                clearTimeout(timer);
+                isPlaying = false;
+                d3.select("#play-pause").text("Play");
+                riddleIndex = +this.value;
+                d3.select("#slider-value").text(riddles[riddleIndex]);
+                updateChart(slideDuration);
+            });
+        // Initialize slider labels
+        d3.select("#slider-value").text(riddles[0]);
+        d3.select("#slider-max").text(riddles[riddles.length - 1]);
+        
         // Start the animation
-        updateChart();
+        updateChart(defaultDuration);
     </script>
 </body>
 </html>
