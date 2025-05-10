@@ -200,9 +200,9 @@
         function textTrunc(d, barLength, maxWidth) {
             var maxTeamLength;
             if (insideBar(d, barLength, maxWidth)) {
-                maxTeamLength = (barLength - 40)
+                maxTeamLength = (barLength - 30)
             } else {
-                maxTeamLength = maxWidth - barLength - 30;
+                maxTeamLength = maxWidth - barLength - 20;
             }
             maxTeamCar = maxTeamLength / 8;
             if (d.team.length < maxTeamCar) {
