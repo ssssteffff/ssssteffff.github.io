@@ -194,7 +194,23 @@
         
         function insideBar(d, barLength, maxWidth) {
             teamLength = d.team.length * 8;
-            return (barLength > (teamLength + 40)) && (teamLength < ((maxWidth - 10) / 2));
+
+            return (barLength - 40 > teamLength) || ((barLength - 40) > (maxWidth - barLength));
+        }
+        function textTrunc(d, barLength, maxWidth) {
+            var maxTeamLength;
+            if (insideBar(d, barLength, maxWidth)) {
+                maxTeamLength = (barLength - 30)
+            } else {
+                maxTeamLength = maxWidth - barLength;
+            }
+            maxTeamCar = maxTeamLength / 8;
+            if (d.team.length < maxTeamCar) {
+                return d.team;
+            } else {
+                return d.team.substring(0, maxTeamCar - 3) + "...";
+            }
+            
         }
         function updateChart(duration) {
             currentWidth = parseInt(d3.select('#bar-chart').style('width'), 10);
@@ -269,7 +285,8 @@
                     } else {
                         return 'black'
                     }
-                });
+                })
+                .text(d => textTrunc(d, xScale(d.score), currentWidth));
             
             bars.select(".bar-score")
                 .transition()
@@ -307,7 +324,7 @@
                 .attr("class", "bar-label")
                 .attr("x", 10)
                 .attr("y", barHeight / 2)
-                .text(d => d.team)
+                .text(d => textTrunc(d, xScale(d.score), currentWidth))
                 .attr("fill", function(d) {
                     if (insideBar(d, xScale(d.score), currentWidth)) {
                         return "white";
